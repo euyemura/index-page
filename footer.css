@@ -1,0 +1,15 @@
+footer {
+  background-image: url("pictures/underwater.png");
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 1800px;
+  /*background-size: 100%;*/
+  align-items: center;
+  justify-content: center;
+  display: flex;
+
+  /*background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;*/
+  background-size: cover;
+}

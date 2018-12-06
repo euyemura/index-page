@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="utf-8">
+  <title>It's a me, mario</title>
+  <link rel="stylesheet" href="good-shit.css"/>
+  <link rel="stylesheet" href="main.css"/>
+  <link rel="stylesheet" href="cave.css"/>
+  <link rel="stylesheet" href="footer.css"/>
+  <link rel="stylesheet" href="card.css"/>
+</head>
+
+
+<body>
+
+  <header>
+    <div class="text-box">
+    <h1 id="header-text">Welcome</h1>
+
+    <h3 id="header-text"> Level 9000 hacker </h3>
+    </div>
+
+  </header>
+
+  <div class="interval">
+    <h2 class="interlude">Hello there!</h2>
+  </div>
+
+  <div class="cave">
+    <h2 class="cave">Thanks<br />for<br />visiting<br />my<br />page</h2>
+  </div>
+
+  <div class="interval" id="card-layout">
+
+    <canvas id="gameCanvas" width="300" height="200" ></canvas>
+
+    <script>
+      let canvas;
+       // this is the handle of the informoion on display of our canvas dimensions.
+      let canvasContext;
+       // the underlying graphical information that we can draw shit to.
+      let ballX = 0;
+      //this is the horizontal position of the ball... which means this is 50 pixels from the right of the top left of the screen.
+      let ballSpeedX = 5;
+      //this is the variable that we will be changing in order to make it go backwards when it hits the right wall.
+      let ballY= 150;
+      let ballSpeedY = 3;
+      let computerSpeed = 5;
+      // gonna give it a slightly lower vertical speed. and since its a positive it'll actualy be moving down, since the higher you go, the lower you go, if you know what i mean.
+      let paddle1Y = 100; //because we'll eventually have a paddle2y.
+      let paddle2Y = 100;
+      const PADDLE_WIDTH = 10;
+      const PADDLE_HEIGHT = 50; //right here we are declaring the height of all the paddles.
+      let playerScore = 0;
+      let computerScore = 0;
+      const WINNING_SCORE = 3;
+      let showingWinScreen = false;
+
+      function calculateMousePos(event) {
+        //basically, we're checking where the mouse position actually is relative to the canvas, in order to calculate this
+        let rect = canvas.getBoundingClientRect();
+        let root = document.documentElement;
+        let mouseX = event.clientX - rect.left - root.scrollLeft;
+        let mouseY = event.clientY - rect.top - root.scrollTop;
+          console.log(mouseY)
+         return {
+           x: mouseX,
+           y: mouseY
+         }
+      }
+
+      window.onload = function () {
+        canvas = document.getElementById('gameCanvas');
+         //now that the page has actually loaded, i am now able to reference the element object and capture it inside of a variable.
+        canvasContext = canvas.getContext('2d');
+        let framesPerSecond = 30;
+        //right here i just save whatever frames per second that i would like..
+        setInterval(function() {
+          //this is an inline function that will be called 30 times a second.
+          drawEverything();
+          moveEverything();
+        }, 1000/framesPerSecond);
+
+        canvas.addEventListener('mousemove', function(event) {
+                                                      let mousePos = calculateMousePos(event);
+                                                      paddle1Y = mousePos.y - (PADDLE_HEIGHT/2)
+
+                                            })
+        canvas.addEventListener('click', function(event) {
+                                                      if(showingWinScreen){
+                                                        showingWinScreen = false;
+                                                        playerScore = 0;
+                                                        computerScore = 0;
+                                                      }
+        });
+      }
+
+      function resetBall() {
+        //added this line so that each time it was reset it was able to change direction..
+        if(playerScore == WINNING_SCORE || computerScore == WINNING_SCORE) {
+          showingWinScreen = true;
+        }
+        ballSpeedX = -ballSpeedX;
+        ballSpeedY = ballSpeedY/2
+        ballX = canvas.width/2;
+        ballY = canvas.height/2;
+      }
+
+      function computerMovement() {
+        let paddle2YCenter = paddle2Y + PADDLE_HEIGHT/2
+        if (paddle2YCenter < ballY - 12) { //this versino right here is basically impossible to beat, because its measuring it from the middle of the paddle and not the top, so the paddle has more space in order to mess up
+            paddle2Y += computerSpeed;
+        } else if (paddle2YCenter > ballY + 12) {
+          paddle2Y -= computerSpeed
+        }
+      }
+
+      function moveEverything() {
+        if(showingWinScreen) {
+          return;
+          //returning means the function stops as soon as it sees that someone has won, same with drawEverything.
+        }
+        computerMovement();
+
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+        // ballSpeedX++ this could accelerate the ball if you wanted that.
+        if (ballY > paddle2Y && ballY < (paddle2Y + PADDLE_HEIGHT) && ballX > (canvas.width - PADDLE_WIDTH)) {
+          //see note below
+
+          if(ballSpeedX > 0) {
+            ballSpeedX = -ballSpeedX
+          }
+          let deltaY = ballY - (paddle2Y + PADDLE_HEIGHT/2);
+          ballSpeedY = deltaY *.35;
+        }
+        if (ballY > paddle1Y && ballY < (paddle1Y + PADDLE_HEIGHT) && ballX < PADDLE_WIDTH) {
+          //added a check to make sure the ball was moving in the left direction before it switched direction
+          if(ballSpeedX < 0) {
+          ballSpeedX = -ballSpeedX
+          }
+          let deltaY = ballY - (paddle1Y + PADDLE_HEIGHT/2);
+          ballSpeedY = deltaY *.35;
+        }
+        if (ballX > canvas.width) {
+          //this is the criteria for player scoring
+          playerScore++;
+          resetBall();
+        }
+        if (ballX < 0 ) {
+          //this is the criteria for computer scoring
+          computerScore++;
+          resetBall();
+        }
+        if (ballY > canvas.height || ballY < 0) {
+          ballSpeedY = -ballSpeedY;
+        }
+      }
+
+      function drawEverything() {
+        //----------------BLACK CANVAS------------------------------------
+        colorRect(0, 0, canvas.width, canvas.height, 'black');
+        //------------------WIN SCREEN-------------------------------------
+        if (showingWinScreen) {
+          canvasContext.fillStyle = 'white'
+          if(playerScore == WINNING_SCORE) {
+            canvasContext.fillText("Player Wins!", canvas.width/2 - 40, canvas.height/2 -40)
+          } else if(computerScore == WINNING_SCORE) {
+            canvasContext.fillText("Computer Wins!", canvas.width/2 - 38, canvas.height/2 -40)
+          }
+          canvasContext.fillText("Click to Start New Game", canvas.width/2 - 50, canvas.height/2 - 10)
+          return;
+        }
+        //----------------------------NET-------------------------------------
+        drawNet()
+        //----------------PADDLE------------------------------------------------
+        colorRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'blue')
+        //-----------------AI PADDLE---------------------------------------------
+        colorRect(canvas.width-PADDLE_WIDTH, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'red')
+        //-----------------BALL-------------------------------------------------
+        colorCircle(ballX, ballY, 10, 'white');
+        //------------------SCORE TEXT-----------------------------------------
+        canvasContext.fillStyle = 'white'
+        scoreBoard(playerScore, 100, 100)
+        scoreBoard(computerScore, canvas.width - 100, 100)
+      }
+
+
+      function scoreBoard(score, x, y) {
+        canvasContext.fillText(score, x, y)
+      }
+
+      function colorRect(leftX, topY, width, height, drawColor) {
+        canvasContext.fillStyle = drawColor;
+        canvasContext.fillRect(leftX, topY, width, height)
+      }
+
+      function drawNet() {
+        for (let i = 0; i < canvas.height; i += 40) {
+          colorRect(canvas.width/2 - 1, i, 2, 20, 'white')
+        }
+      }
+
+      function colorCircle(centerX, centerY, radius, color) {
+        canvasContext.fillStyle = color;
+        canvasContext.beginPath();
+        canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true);
+        canvasContext.fill();
+      }
+    </script>
+
+    <!-- <article class="card">
+     <h4> Hello there good sir! </h4>
+    </article>
+
+    <article class="card">
+      <h4> Hello there good sir! </h4>
+    </article> -->
+
+  </div>
+
+  <footer>
+
+  </footer>
+
+</body>
+</html>

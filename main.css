@@ -1,0 +1,10 @@
+.interlude {
+  font-family: monospace;
+  font-size: 60px;
+  text-align: center;
+}
+
+div, header, main, body {
+  margin: 0px 0px;
+
+}
